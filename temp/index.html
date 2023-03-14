@@ -1,0 +1,117 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temp</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="chatbox">
+        <div class="bubbleWrapper">
+            <div class="inlineContainer">
+                <img class="inlineIcon"
+                    src="https://cdn1.iconfinder.com/data/icons/ninja-things-1/1772/ninja-simple-512.png">
+                <div class="ownBubble own" id="chatbotChatBox">
+
+                </div>
+            </div><span class="other" id="passTime">08:41</span>
+        </div>
+        <div class="bubbleWrapper">
+            <div class="inlineContainer own">
+                <img class="inlineIcon"
+                    src="https://www.pinclipart.com/picdir/middle/205-2059398_blinkk-en-mac-app-store-ninja-icon-transparent.png">
+                <div class="otherBubble other" id="userChatBox">
+
+                </div>
+            </div><span class="own" id="passTime">08:55</span>
+        </div>
+    </div>
+    <form>
+        <div class="input-group">
+            <input id="inputField" type="text" class="form-control" placeholder="Write your message here..." />
+            <span>
+                <button id="sendButton">Send</button>
+            </span>
+        </div>
+    </form>
+</body>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+    // Establish a socket connection to the server
+    const socket = io();
+
+    // Query DOM elements
+    const inputField = document.getElementById("inputField");
+    const userchatBox = document.getElementById("userChatBox");
+    const chatbotChatBox = document.getElementById("chatbotChatBox");
+    const chatbox = document.getElementById('chatbox')
+    // let messageContainer  = document.getElementsByClassName("messageContainer")
+
+    // Helper function to append a message to the chat box
+    function appendMessage(message, sender) {
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("message-text", sender);
+        messageElement.textContent = message;
+
+        const timestamp = new Date().toLocaleTimeString(); // create timestamp
+        const timestampElement = document.createElement("span"); // create span element for timestamp
+        timestampElement.classList.add("timestamp");
+        timestampElement.textContent = timestamp;
+
+        const messageContainer = document.createElement("div");
+        messageContainer.classList.add("message-container");
+        messageContainer.appendChild(messageElement);
+
+        // messageContainer.appendChild(timestampElement);
+        if (sender == 'user') {
+            userchatBox.appendChild(messageContainer);
+            
+            userchatBox.scrollTop = userchatBox.scrollHeight;
+        } else {
+            chatbotChatBox.appendChild(messageContainer);
+            
+            chatbotChatBox.scrollTop = chatbotChatBox.scrollHeight;
+        }
+        // chatbox.appendChild(userchatBox)
+        // chatbox.appendChild(chatbotChatBox)
+
+    }
+
+    // Handle sending messages
+    function sendMessage() {
+        const message = inputField.value.trim();
+        if (message === "") {
+            return;
+        }
+        appendMessage(message, "user");
+        socket.emit("user-message", message);
+        inputField.value = "";
+    }
+
+    // Handle receiving messages from the server
+    socket.on("bot-message", (message) => {
+        appendMessage(message, "bot");
+    });
+
+    // Attach event listeners
+    document.querySelector("form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        sendMessage();
+    });
+
+    document.getElementById("sendButton").addEventListener("click", sendMessage);
+
+    document.getElementById("inputField").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+</script>
+
+</html>
